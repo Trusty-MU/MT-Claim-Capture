@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Primary */
+  --mt-black-sand: #262626;
+  --mt-red-ore: #ff473b;
+  --mt-dust: #c2a68f;
+  --mt-sand: #d6c7ba;
+  --mt-white: #ffffff;
+  /* Secondary (category/tag accents only) */
+  --mt-ocean: #75bed5;
+  --mt-coast: #46c1a5;
+  --mt-coral: #ebb6a4;
+  --mt-gold: #a8702e;
+  --mt-sun: #f9b618;
+  --mt-red-earth: #973727;
+  --mt-font: 'Albert Sans', 'Inter', sans-serif;
+}
+
+body {
+  background-color: var(--mt-white);
+  color: var(--mt-black-sand);
+  font-family: var(--mt-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Red Ore flat rectangle info label */
+.mt-label {
+  @apply inline-block bg-mt-red-ore px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white;
+}
+
+/* Red Ore pill for high-visibility headline tags */
+.mt-pill {
+  @apply inline-block rounded-full bg-mt-red-ore px-4 py-1 text-sm font-bold text-white;
+}
+
+/* Photos: single rounded corner, bottom-right */
+.mt-photo {
+  border-radius: 0 0 2.5rem 0;
+}
+
+/* The MT process symbol: Red Ore quarter circle, anchors key screens top-right */
+.mt-quarter {
+  width: 72px;
+  height: 72px;
+  background: var(--mt-red-ore);
+  border-radius: 0 0 0 100%;
+}
+
+.mt-input {
+  @apply w-full border-2 border-mt-sand bg-white px-4 py-3 text-mt-black-sand outline-none focus:border-mt-black-sand;
+}
+
+.mt-btn {
+  @apply inline-flex items-center justify-center gap-2 bg-mt-black-sand px-6 py-3 font-bold text-white transition-opacity hover:opacity-80 disabled:opacity-40;
+}
+
+.mt-btn-red {
+  @apply inline-flex items-center justify-center gap-2 bg-mt-red-ore px-6 py-3 font-bold text-white transition-opacity hover:opacity-80 disabled:opacity-40;
+}
+
+.mt-btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 border-2 border-mt-black-sand px-6 py-3 font-bold text-mt-black-sand transition-colors hover:bg-mt-black-sand hover:text-white disabled:opacity-40;
+}
+
+@keyframes mt-pulse {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+/* Print: case study one-pager */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+  .print-page {
+    width: 100%;
+    max-width: none;
+  }
+}

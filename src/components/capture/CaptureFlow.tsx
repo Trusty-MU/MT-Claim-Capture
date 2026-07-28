@@ -46,6 +46,7 @@ export function CaptureFlow({
     return { kind: 'question', index: Math.max(0, firstUnanswered) };
   });
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   async function chooseType(type: StoryType) {
     setStoryType(type);
@@ -64,11 +65,20 @@ export function CaptureFlow({
 
   async function submit() {
     setSubmitting(true);
-    const res = await fetch(`/api/stories/${story.id}/submit`, { method: 'POST' });
-    setSubmitting(false);
-    if (res.ok) {
-      setStep({ kind: 'result' });
-      router.refresh();
+    setSubmitError(null);
+    try {
+      const res = await fetch(`/api/stories/${story.id}/submit`, { method: 'POST' });
+      setSubmitting(false);
+      if (res.ok) {
+        setStep({ kind: 'result' });
+        router.refresh();
+        return;
+      }
+      const body = await res.json().catch(() => ({}));
+      setSubmitError(body.error ?? `Could not send that in (HTTP ${res.status}).`);
+    } catch {
+      setSubmitting(false);
+      setSubmitError('Could not reach the server. Your answers are saved; try again.');
     }
   }
 
@@ -174,6 +184,11 @@ export function CaptureFlow({
           <button type="button" className="mt-btn-red mt-8 w-full max-w-xs py-4 text-lg" onClick={submit} disabled={submitting}>
             {submitting ? 'Sending…' : 'Send it in'}
           </button>
+          {submitError && (
+            <p className="mt-4 max-w-xs border-2 border-mt-red-ore bg-white p-3 text-sm font-bold text-mt-red-ore">
+              {submitError}
+            </p>
+          )}
           <button type="button" className="mt-4 text-sm font-bold underline" onClick={() => setStep({ kind: 'files' })}>
             Back
           </button>
@@ -204,6 +219,7 @@ function QuestionScreen({
   const [mode, setMode] = useState<'voice' | 'text'>('voice');
   const [text, setText] = useState('');
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   async function saveVoice(blob: Blob) {
     const form = new FormData();
@@ -223,9 +239,19 @@ function QuestionScreen({
     form.append('kind', 'text');
     form.append('question_number', String(question.number));
     form.append('text', text.trim());
-    const res = await fetch(`/api/stories/${storyId}/inputs`, { method: 'POST', body: form });
-    setSaving(false);
-    if (res.ok) onAnswered();
+    try {
+      const res = await fetch(`/api/stories/${storyId}/inputs`, { method: 'POST', body: form });
+      setSaving(false);
+      if (res.ok) {
+        onAnswered();
+        return;
+      }
+      const body = await res.json().catch(() => ({}));
+      setSaveError(body.error ?? `Could not save that answer (HTTP ${res.status}).`);
+    } catch {
+      setSaving(false);
+      setSaveError('Could not reach the server. Check your connection and try again.');
+    }
   }
 
   return (
@@ -253,6 +279,9 @@ function QuestionScreen({
               placeholder="Type your answer"
               autoFocus
             />
+            {saveError && (
+              <p className="mt-3 border-2 border-mt-red-ore p-3 text-sm font-bold text-mt-red-ore">{saveError}</p>
+            )}
             <div className="mt-3 flex items-center justify-between">
               <button type="button" className="text-sm font-bold underline" onClick={() => setMode('voice')}>
                 Talk instead

@@ -59,6 +59,21 @@ update users set role = 'marketing' where email = 'you@mineraltechnologies.com';
 
 After that, roles are managed in the app at `/admin`.
 
+### If the verification email never arrives
+
+Supabase's built-in SMTP is rate limited to a few messages an hour and is not intended for production, so this is the first thing to break. Either turn off **Confirm email** under Authentication -> Providers -> Email, or create a pre-verified account directly:
+
+```sh
+NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
+  node scripts/create-user.mjs you@mineraltechnologies.com 'a-good-password' marketing
+```
+
+For a real deployment, configure your own SMTP provider in Supabase rather than relying on the built-in sender.
+
+### Running with no sign-in
+
+`AUTH_BYPASS=true` disables sign-in entirely and runs every request as a marketing user, which is useful while email is being sorted out. It makes the whole app public and fully privileged, including client names, unapproved numbers and quotes marked internal only, so it belongs on a URL nobody else has and nothing more. A red banner appears on every screen while it is on, and `/api/health` reports it. `AUTH_BYPASS_EMAIL` picks which account to act as; otherwise the first marketing user is used. It needs at least one row in `users`, so run `scripts/create-user.mjs` first.
+
 ## The AI pipeline
 
 Triggered on story submission, runs server-side with progress written to the story:

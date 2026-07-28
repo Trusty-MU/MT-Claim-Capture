@@ -29,6 +29,8 @@ export async function GET() {
     ANTHROPIC_API_KEY: present(process.env.ANTHROPIC_API_KEY),
   };
 
+  const authBypass = process.env.AUTH_BYPASS === 'true';
+
   const optional = {
     ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL ?? null,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? null,
@@ -50,6 +52,9 @@ export async function GET() {
       ok: missing.length === 0 && projectRefMatches !== false,
       missing,
       projectRef: { expected: expectedProjectRef, matches: projectRefMatches },
+      authBypass: authBypass
+        ? { enabled: true, warning: 'Sign-in is disabled; every request has full access.' }
+        : { enabled: false },
       required,
       optional,
     },

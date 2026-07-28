@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Profile, UserRole } from '@/lib/types';
 import { QuarterCircle } from '@/components/brand/QuarterCircle';
+import { authBypassEnabled } from '@/lib/auth-bypass';
 
 interface NavItem {
   href: string;
@@ -26,6 +27,12 @@ export function AppShell({ profile, children }: { profile: Profile; children: Re
   return (
     <div className="relative min-h-screen bg-white">
       <QuarterCircle />
+      {authBypassEnabled() && (
+        <div className="bg-mt-red-ore px-4 py-2 text-center text-sm font-bold text-white">
+          Sign-in is off. Anyone with this link has full access to every client
+          name, unapproved number and internal quote. Set AUTH_BYPASS=false before sharing.
+        </div>
+      )}
       <header className="border-b-2 border-mt-black-sand bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-4 pr-20">
           <Link href="/" className="text-lg font-extrabold tracking-tight">

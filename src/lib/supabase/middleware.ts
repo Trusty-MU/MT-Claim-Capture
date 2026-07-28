@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { tryPublicSupabaseEnv } from './env';
+import { authBypassEnabled } from '@/lib/auth-bypass';
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
@@ -15,6 +16,9 @@ export async function updateSession(request: NextRequest) {
   // surface the detailed error from publicSupabaseEnv().
   const env = tryPublicSupabaseEnv();
   if (!env) return supabaseResponse;
+
+  // No sign-in to enforce when the bypass is on.
+  if (authBypassEnabled()) return supabaseResponse;
 
   const supabase = createServerClient(
     env.url,

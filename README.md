@@ -19,15 +19,20 @@ Claims and Proof Points are first-class database entities, not text inside docum
 
 ### 1. Supabase
 
-Create (or restore) a Supabase project, then apply the migrations and seed:
+The MT project is `giicdspcpeunmosqmeio`. Bring the database up either way:
+
+**Dashboard (no CLI needed).** Open the project's SQL editor and paste `supabase/bootstrap.sql`, then run it once. That single file is the schema, storage buckets and seed data concatenated.
+
+**Supabase CLI.**
 
 ```sh
-# with the Supabase CLI linked to your project
-supabase db push          # applies supabase/migrations/*.sql
-psql "$DATABASE_URL" -f supabase/seed.sql   # or paste seed.sql into the SQL editor
+supabase db push                             # applies supabase/migrations/*.sql
+psql "$DATABASE_URL" -f supabase/seed.sql
 ```
 
-`0001_schema.sql` creates all tables, enums and row-level security. `0002_storage.sql` creates the private `voice-notes` and `story-files` buckets. `seed.sql` loads the personas, product tags, and the Mindarie story with its three claims, [XX]-valued proof points and open gaps, so the gap-chasing workflow has real work from day one.
+`0001_schema.sql` creates all tables, enums and row-level security, and puts the RLS helper function in a `private` schema so PostgREST does not expose it as an RPC. `0002_storage.sql` creates the private `voice-notes` and `story-files` buckets. `seed.sql` loads the personas, product tags, and the Mindarie story with its three claims, [XX]-valued proof points and open gaps, so the gap-chasing workflow has real work from day one.
+
+`bootstrap.sql` is generated from those three files — regenerate it with `scripts/build-bootstrap.sh` after changing any of them.
 
 In Supabase Auth settings, enable the **Email** provider (magic links) and add your site URL to the redirect allow-list (`https://your-app/auth/callback`).
 

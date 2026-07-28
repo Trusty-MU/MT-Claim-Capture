@@ -5,12 +5,12 @@
 # nothing is written to disk. Required:
 #
 #   VERCEL_TOKEN                 vercel.com/account/tokens
-#   SUPABASE_SERVICE_ROLE_KEY    Supabase dashboard, Project Settings -> API keys
+#   SUPABASE_ANON_KEY            MT project -> Project Settings -> API keys (publishable)
+#   SUPABASE_SERVICE_ROLE_KEY    same page, service_role key
 #   ANTHROPIC_API_KEY            console.anthropic.com
 #
 # Optional (defaults shown):
-#   SUPABASE_URL       https://qbungwjqtjawqzozmnyd.supabase.co
-#   SUPABASE_ANON_KEY  the project's publishable key
+#   SUPABASE_URL       https://giicdspcpeunmosqmeio.supabase.co
 #   ANTHROPIC_MODEL    claude-sonnet-4-6
 #   PROJECT_NAME       mt-proof-engine
 #
@@ -22,8 +22,8 @@ set -euo pipefail
 : "${SUPABASE_SERVICE_ROLE_KEY:?set SUPABASE_SERVICE_ROLE_KEY}"
 : "${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY}"
 
-SUPABASE_URL="${SUPABASE_URL:-https://qbungwjqtjawqzozmnyd.supabase.co}"
-SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY:-sb_publishable_puphtaj3HRG3zAjWJofa9g_ZvpgqyKA}"
+SUPABASE_URL="${SUPABASE_URL:-https://giicdspcpeunmosqmeio.supabase.co}"
+: "${SUPABASE_ANON_KEY:?set SUPABASE_ANON_KEY (the MT project publishable key)}"
 ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-claude-sonnet-4-6}"
 PROJECT_NAME="${PROJECT_NAME:-mt-proof-engine}"
 

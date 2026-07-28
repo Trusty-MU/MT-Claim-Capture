@@ -20,7 +20,8 @@ export async function PATCH(request: Request) {
   return NextResponse.json({ user: data });
 }
 
-// Invite a teammate by email (creates the auth user; they sign in by magic link).
+// Invite a teammate by email. The invite link lands on /auth/update-password
+// so they set a password before their first sign-in.
 export async function POST(request: Request) {
   const gate = await requireApiRole(['marketing']);
   if (gate.error) return gate.error;
@@ -29,9 +30,11 @@ export async function POST(request: Request) {
   const email = String(body.email ?? '').trim().toLowerCase();
   if (!email.includes('@')) return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
 
+  // The invite link carries type=invite, so the callback sends them to
+  // /auth/update-password to set one before they can sign in normally.
   const admin = createAdminClient();
   const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/auth/callback`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/auth/callback?type=invite`,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 

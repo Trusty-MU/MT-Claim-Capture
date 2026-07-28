@@ -2,7 +2,7 @@
 
 Capture a client win in 15 minutes by talking. Get back a growing, searchable library of Claims backed by Proof Points, publishable case studies, SPIN-style sales questions, and role-targeted social content.
 
-Built for Mineral Technologies: Next.js (App Router) + Tailwind, Supabase (Postgres, magic-link auth, storage), Anthropic API for all generation stages.
+Built for Mineral Technologies: Next.js (App Router) + Tailwind, Supabase (Postgres, email+password auth, storage), Anthropic API for all generation stages.
 
 ## The domain model
 
@@ -34,7 +34,7 @@ psql "$DATABASE_URL" -f supabase/seed.sql
 
 `bootstrap.sql` is generated from those three files — regenerate it with `scripts/build-bootstrap.sh` after changing any of them.
 
-In Supabase Auth settings, enable the **Email** provider (magic links) and add your site URL to the redirect allow-list (`https://your-app/auth/callback`).
+In Supabase Auth settings, enable the **Email** provider with **Confirm email** switched on, and under URL Configuration set the Site URL and add `https://your-app/auth/callback` to the redirect allow-list. Nothing else needs configuring: signup, password reset and invites all come back through that one callback, which routes on the link's `type`.
 
 ### 2. Environment
 
@@ -51,7 +51,7 @@ npm install
 npm run dev
 ```
 
-The first person to sign in gets the `contributor` role. Promote yourself to Marketing Owner once:
+Create an account at `/login` with an email and password, click the verification link, then sign back in. Everyone starts as `contributor`. Promote yourself to Marketing Owner once:
 
 ```sql
 update users set role = 'marketing' where email = 'you@mineraltechnologies.com';

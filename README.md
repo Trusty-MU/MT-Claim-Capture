@@ -72,7 +72,11 @@ For a real deployment, configure your own SMTP provider in Supabase rather than 
 
 ### Running with no sign-in
 
-`AUTH_BYPASS=true` disables sign-in entirely and runs every request as a marketing user, which is useful while email is being sorted out. It makes the whole app public and fully privileged, including client names, unapproved numbers and quotes marked internal only, so it belongs on a URL nobody else has and nothing more. A red banner appears on every screen while it is on, and `/api/health` reports it. `AUTH_BYPASS_EMAIL` picks which account to act as; otherwise the first marketing user is used. It needs at least one row in `users`, so run `scripts/create-user.mjs` first.
+Set `AUTH_BYPASS=true` and redeploy. Sign-in is skipped entirely and every request runs as a marketing user, so all screens are reachable.
+
+It works on an empty or unmigrated database: it prefers a real row from `users` (named by `AUTH_BYPASS_EMAIL`, otherwise the first marketing user), and falls back to a synthetic identity if there is none. Under that synthetic identity anything recording a contributor stores null, since `contributor_id` references `users(id)`, and `/my-stories` lists every story rather than none. Run `scripts/create-user.mjs` if you want captures attributed to a real person.
+
+This makes the whole app public and fully privileged: client names, unapproved numbers, quotes marked internal only, unpublished case studies. There is no row-level security in this mode either, because without a session every policy would deny, so the request-scoped client becomes the service-role client. It belongs on a URL nobody else has. A red banner shows on every screen while it is on, `/api/health` reports it, and the server logs a warning once per process.
 
 ## The AI pipeline
 

@@ -5,16 +5,17 @@ import { AppShell } from '@/components/AppShell';
 import { StoryStatusChip, StoryTypeBadge } from '@/components/brand/badges';
 import { formatDate } from '@/lib/utils';
 import type { Story } from '@/lib/types';
+import { authBypassEnabled, isSyntheticProfile } from '@/lib/auth-bypass';
 
 export default async function MyStoriesPage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const { data: stories } = await supabase
-    .from('stories')
-    .select('*')
-    .eq('contributor_id', profile.id)
-    .order('created_at', { ascending: false });
+  // Under the bypass the synthetic identity owns nothing, so filtering by it
+  // would show an empty list. Show every story instead.
+  const showAll = authBypassEnabled() && isSyntheticProfile(profile);
+  const query = supabase.from('stories').select('*').order('created_at', { ascending: false });
+  const { data: stories } = showAll ? await query : await query.eq('contributor_id', profile.id);
 
   return (
     <AppShell profile={profile}>

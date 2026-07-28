@@ -45,11 +45,18 @@ export function AppShell({ profile, children }: { profile: Profile; children: Re
               </Link>
             ))}
           </nav>
-          <form action="/auth/signout" method="post" className="ml-auto">
-            <button className="text-xs font-bold uppercase tracking-[0.08em] text-mt-dust hover:text-mt-black-sand">
-              Sign out
-            </button>
-          </form>
+          {authBypassEnabled() ? (
+            // Nothing to sign out of; showing the control would just confuse.
+            <span className="ml-auto text-xs font-bold uppercase tracking-[0.08em] text-mt-dust">
+              {profile.role}
+            </span>
+          ) : (
+            <form action="/auth/signout" method="post" className="ml-auto">
+              <button className="text-xs font-bold uppercase tracking-[0.08em] text-mt-dust hover:text-mt-black-sand">
+                Sign out
+              </button>
+            </form>
+          )}
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>

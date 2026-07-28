@@ -1,20 +1,26 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getProfile } from '@/lib/auth';
+import { isSyntheticProfile } from '@/lib/auth-bypass';
 
 // Create a draft story. The capture flow saves everything against it as the
 // contributor goes, so partial captures are never lost.
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
+  // Resolved through getProfile rather than reading the session directly, so
+  // this works under AUTH_BYPASS as well as normal sign-in.
+  const profile = await getProfile();
+  if (!profile) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
 
+  const supabase = await createClient();
   const body = await request.json().catch(() => ({}));
+
+  // The synthetic bypass identity is not a real row, and contributor_id
+  // references users(id), so store null rather than violating the constraint.
+  const contributorId = isSyntheticProfile(profile) ? null : profile.id;
 
   const { data, error } = await supabase
     .from('stories')
-    .insert({ contributor_id: user.id, story_type: body.story_type ?? null })
+    .insert({ contributor_id: contributorId, story_type: body.story_type ?? null })
     .select()
     .single();
 

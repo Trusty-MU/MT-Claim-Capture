@@ -1,7 +1,12 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { authBypassEnabled, authBypassEmail, warnBypassOnce } from '@/lib/auth-bypass';
+import {
+  authBypassEnabled,
+  authBypassEmail,
+  warnBypassOnce,
+  syntheticProfile,
+} from '@/lib/auth-bypass';
 import type { Profile, UserRole } from '@/lib/types';
 
 /**
@@ -37,41 +42,49 @@ export function profileFailureMessage(reason: ProfileFailure): string {
  * A real row matters because stories.contributor_id is a foreign key, so a
  * made-up id would fail the moment anyone captured anything.
  */
-async function bypassProfile(): Promise<Profile | null> {
+async function bypassProfile(): Promise<Profile> {
   warnBypassOnce();
-  const admin = createAdminClient();
-  const email = authBypassEmail();
 
-  if (email) {
-    const { data } = await admin.from('users').select('*').eq('email', email).maybeSingle();
-    if (data) return data as Profile;
-    console.warn(`[MT Proof Engine] AUTH_BYPASS_EMAIL=${email} matched no user.`);
+  // Prefer a real row so contributor_id and requested_by point at something,
+  // but never fail: an empty or unmigrated database must still render.
+  try {
+    const admin = createAdminClient();
+    const email = authBypassEmail();
+
+    if (email) {
+      const { data } = await admin.from('users').select('*').eq('email', email).maybeSingle();
+      if (data) return data as Profile;
+      console.warn(`[MT Proof Engine] AUTH_BYPASS_EMAIL=${email} matched no user.`);
+    }
+
+    const { data: marketing } = await admin
+      .from('users')
+      .select('*')
+      .eq('role', 'marketing')
+      .limit(1)
+      .maybeSingle();
+    if (marketing) return marketing as Profile;
+
+    const { data: anyUser } = await admin.from('users').select('*').limit(1).maybeSingle();
+    if (anyUser) return anyUser as Profile;
+  } catch (err) {
+    console.warn(
+      `[MT Proof Engine] Could not read public.users under AUTH_BYPASS: ${
+        err instanceof Error ? err.message : 'unknown error'
+      }`
+    );
   }
 
-  const { data: marketing } = await admin
-    .from('users')
-    .select('*')
-    .eq('role', 'marketing')
-    .limit(1)
-    .maybeSingle();
-  if (marketing) return marketing as Profile;
-
-  const { data: anyUser } = await admin.from('users').select('*').limit(1).maybeSingle();
-  if (anyUser) return anyUser as Profile;
-
   console.warn(
-    '[MT Proof Engine] AUTH_BYPASS is on but public.users is empty. ' +
-      'Create one with scripts/create-user.mjs, or the capture flow will fail ' +
-      'on the contributor_id foreign key.'
+    '[MT Proof Engine] AUTH_BYPASS is on with no usable row in public.users, ' +
+      'so a synthetic identity is being used. Reads work; anything recording a ' +
+      'contributor stores null. Run scripts/create-user.mjs for a real one.'
   );
-  return null;
+  return syntheticProfile();
 }
 
 export async function resolveProfile(): Promise<ProfileResult> {
-  if (authBypassEnabled()) {
-    const profile = await bypassProfile();
-    return profile ? { profile } : { profile: null, reason: 'no-profile-row' };
-  }
+  if (authBypassEnabled()) return { profile: await bypassProfile() };
 
   const supabase = await createClient();
   const {

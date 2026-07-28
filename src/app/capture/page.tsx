@@ -4,18 +4,20 @@ import { createClient } from '@/lib/supabase/server';
 import { QuarterCircle } from '@/components/brand/QuarterCircle';
 import { StartButtons } from './StartButtons';
 import type { Story } from '@/lib/types';
+import { authBypassEnabled, isSyntheticProfile } from '@/lib/auth-bypass';
 
 export default async function CapturePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const { data: drafts } = await supabase
+  const showAll = authBypassEnabled() && isSyntheticProfile(profile);
+  const draftQuery = supabase
     .from('stories')
     .select('*')
-    .eq('contributor_id', profile.id)
     .eq('status', 'draft')
     .order('updated_at', { ascending: false })
     .limit(5);
+  const { data: drafts } = showAll ? await draftQuery : await draftQuery.eq('contributor_id', profile.id);
 
   return (
     <div className="relative flex min-h-screen flex-col bg-mt-sand">

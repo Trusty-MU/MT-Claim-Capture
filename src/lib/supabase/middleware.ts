@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { publicSupabaseEnv } from './env';
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
@@ -8,9 +9,11 @@ const PUBLIC_PATHS = ['/login', '/auth', '/share'];
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
+  const { url: supabaseUrl, anonKey } = publicSupabaseEnv();
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    anonKey,
     {
       cookies: {
         getAll() {

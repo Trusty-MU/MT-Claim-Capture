@@ -1,19 +1,24 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { publicSupabaseEnv } from './env';
+import { tryPublicSupabaseEnv } from './env';
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
-const PUBLIC_PATHS = ['/login', '/auth', '/share'];
+const PUBLIC_PATHS = ['/login', '/auth', '/share', '/api/health'];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
-  const { url: supabaseUrl, anonKey } = publicSupabaseEnv();
+  // Without Supabase config there is no session to read and nothing to
+  // protect, so pass the request through rather than crashing every route.
+  // /api/health can then report what is actually configured, and page routes
+  // surface the detailed error from publicSupabaseEnv().
+  const env = tryPublicSupabaseEnv();
+  if (!env) return supabaseResponse;
 
   const supabase = createServerClient(
-    supabaseUrl,
-    anonKey,
+    env.url,
+    env.anonKey,
     {
       cookies: {
         getAll() {

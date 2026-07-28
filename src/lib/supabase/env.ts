@@ -29,6 +29,19 @@ export function publicSupabaseEnv(): { url: string; anonKey: string } {
   return { url: url!, anonKey: anonKey! };
 }
 
+/**
+ * Non-throwing variant, for the middleware. It runs on every request, so if it
+ * throws on missing config the whole site 500s and even the health endpoint
+ * becomes unreachable. Returning null lets the request through to a route that
+ * can report the problem properly.
+ */
+export function tryPublicSupabaseEnv(): { url: string; anonKey: string } | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) return null;
+  return { url, anonKey };
+}
+
 /** URL + service role key. Server-side only; bypasses RLS. */
 export function adminSupabaseEnv(): { url: string; serviceRoleKey: string } {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

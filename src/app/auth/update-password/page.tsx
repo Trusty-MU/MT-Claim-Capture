@@ -4,12 +4,10 @@
 // for a session by /auth/callback, so this page just sets the new password.
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { QuarterCircle } from '@/components/brand/QuarterCircle';
 
 export default function UpdatePasswordPage() {
-  const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
@@ -47,8 +45,7 @@ export default function UpdatePasswordPage() {
       setError(error.message);
       return;
     }
-    router.push('/');
-    router.refresh();
+    window.location.assign('/');
   }
 
   return (

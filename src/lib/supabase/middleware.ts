@@ -5,7 +5,7 @@ import { authBypassEnabled } from '@/lib/auth-bypass';
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
-const PUBLIC_PATHS = ['/login', '/auth', '/share', '/api/health'];
+const PUBLIC_PATHS = ['/login', '/auth', '/share', '/api/health', '/api/whoami'];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });

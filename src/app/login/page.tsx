@@ -4,14 +4,13 @@
 
 import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { QuarterCircle } from '@/components/brand/QuarterCircle';
 
 type Mode = 'signin' | 'signup';
 
 function AuthForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') ?? '/';
 
@@ -39,13 +38,17 @@ function AuthForm() {
 
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setBusy(false);
 
     if (!error) {
-      router.push(next);
-      router.refresh();
+      // Full page load rather than router.push: guarantees the server sees the
+      // session cookie that was just written. A client-side navigation can
+      // render the destination before the cookie is visible, which bounces
+      // straight back here looking like nothing happened.
+      window.location.assign(next);
       return;
     }
+
+    setBusy(false);
 
     // Supabase reports an unconfirmed address as a distinct error; offer to
     // resend rather than leaving people stuck on "invalid credentials".
@@ -86,8 +89,7 @@ function AuthForm() {
 
     // With email confirmation on, Supabase returns a user but no session.
     if (data.session) {
-      router.push(next);
-      router.refresh();
+      window.location.assign(next);
     } else {
       setSent(true);
     }
